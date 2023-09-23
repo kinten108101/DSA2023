@@ -44,11 +44,7 @@ public:
     double distanceToPoint(const Point& pointA)
     {
         double sum = (pointA.x - this->x) * (pointA.x - this->x) + (pointA.y - this->y) * (pointA.y - this->y);
-        std::cout << "sum: " << sum << std::endl;
         double final = sqrt(sum);
-        std::cout << "final: " << final << std::endl;
-        double re = pow(final, 2);
-        std::cout << "re: " << re << std::endl;
         return final;
     }
 };
