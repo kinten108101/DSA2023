@@ -25,6 +25,7 @@ public:
     bool    contains(const T& item);
     T       removeAt(int index);
     bool    removeItem(const T& item);
+    void bubbleSort();
 public:
     class Node {
     private:
@@ -223,6 +224,43 @@ bool SLinkedList<T>::contains(const T& item) {
         if (p->data == item) return true;
     }
     return false;
+}
+
+template <class T>
+void SLinkedList<T>::bubbleSort()
+{
+    for (int i = this->size() - 1; i > 0; i--) {
+        bool modified = false;
+        for (int j = 0; j < i; j++) {
+            Node *node_prev = nullptr;
+            Node *node_first = this->head;
+            for (int k = 0; k < j; k++) {
+                node_prev = node_first;
+                node_first = node_first->next;
+            }
+            
+            if (node_first->next == nullptr) continue;
+            Node *node_second = node_first->next;
+            
+            if (node_first->data <= node_second->data) continue;
+            modified = true;
+            
+            Node *node_next = node_second->next;
+            if (node_prev != nullptr)
+                node_prev->next = node_second;
+            node_second->next = node_first;
+            node_first->next = node_next;
+
+            if (this->head == node_first) {
+                this->head = node_second;
+            }
+            if (this->tail == node_second) {
+                this->tail = node_first;
+            }
+        }
+        if (!modified)
+            std::clog << "unmodified" << std::endl;
+    }
 }
 
 
@@ -474,6 +512,36 @@ int main() {
                  if ( 1 != 1 ) return 1; //pass
                  e.what();
             }
+
+            return 0;
+        },
+        []() {
+            SLinkedList<int> list;
+    
+            for (int i = 0; i < 10; ++i) {
+                list.add(rand() / 100000000);
+            }
+
+            std::cout << list.toString() << std::endl;
+
+            list.bubbleSort();
+
+            std::cout << list.toString() << std::endl;
+
+            return 0;
+        },
+        []() {
+            SLinkedList<int> list;
+    
+            for (int i = 0; i < 10; ++i) {
+                list.add(7);
+            }
+
+            std::cout << list.toString() << std::endl;
+
+            list.bubbleSort();
+
+            std::cout << list.toString() << std::endl;
 
             return 0;
         },
