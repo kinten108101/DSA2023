@@ -51,7 +51,6 @@ public:
 
 template <typename T>
 class TreeNode {
-	static_assert(std::is_base_of<Serializable, T>::value, "Child must inherit LinkedListNode");
 public:
 	static int prev_id;
 	static int generate_id() {
@@ -59,34 +58,41 @@ public:
 	}
 public:
 	int id;
-	TreeNode *left, *right;
-	T data;
-public:
-	TreeNode(): id(TreeNode::generate_id()), data(), left(nullptr), right(nullptr) {}
-	TreeNode(const T& data): id(TreeNode::generate_id()), data(data), left(nullptr), right(nullptr) {}
-	bool operator>=(TreeNode<T> rhs) const {
-		return this->data >= rhs.data;
-	}
-	bool operator>(TreeNode<T> rhs) const {
-		return this->data > rhs.data;
-	}
-	bool operator<=(TreeNode<T> rhs) const {
-		return this->data <= rhs.data;
-	}
-	bool operator<(TreeNode<T> rhs) const {
-		return this->data < rhs.data;
-	}
-	bool operator==(TreeNode<T> rhs) const {
-		return this->data == rhs.data;
-	}
+
+	TreeNode(): id(TreeNode::generate_id()) {}
 };
 
 template <typename T> int TreeNode<T>::prev_id = 0;
 
 template <typename T>
 class Tree {
+protected:
+	class BinaryTreeNode : public virtual TreeNode<T> {
+		static_assert(std::is_base_of<Serializable, T>::value, "Child must inherit LinkedListNode");
+	public:
+		BinaryTreeNode *left, *right;
+		T data;
+	public:
+		BinaryTreeNode(): TreeNode<T>::TreeNode(), data(), left(nullptr), right(nullptr) {}
+		BinaryTreeNode(const T& data): data(data), left(nullptr), right(nullptr) {}
+		bool operator>=(const TreeNode<T>& rhs) const {
+			return this->data >= rhs.data;
+		}
+		bool operator>(const TreeNode<T>& rhs) const {
+			return this->data > rhs.data;
+		}
+		bool operator<=(const TreeNode<T>& rhs) const {
+			return this->data <= rhs.data;
+		}
+		bool operator<(const TreeNode<T>& rhs) const {
+			return this->data < rhs.data;
+		}
+		bool operator==(const TreeNode<T>& rhs) const {
+			return this->data == rhs.data;
+		}
+	};
 public:
-	TreeNode<T> root;
+	BinaryTreeNode root;
 	std::map<int, bool> visit_map;
 public:
 	Tree(): root() {}
@@ -101,8 +107,8 @@ public:
 	}
 
 	int insert_sorted(const T & data) {
-		TreeNode<T> *node = &root;
-		TreeNode<T> *target = node;
+		BinaryTreeNode *node = &root;
+		BinaryTreeNode *target = node;
 		int decision = 0;
 		while (node != nullptr) {
 			if ((T &)data < (T &)node->data) {
@@ -116,9 +122,9 @@ public:
 			}
 		}
 		if (decision == 0) {
-			target->left = new TreeNode<T>(data);
+			target->left = new BinaryTreeNode(data);
 		} else {
-			target->right = new TreeNode<T>(data);
+			target->right = new BinaryTreeNode(data);
 		}
 		return 0;
 	}
@@ -143,8 +149,12 @@ public:
 		});
 		return str;
 	}
+
+	void print() {
+		
+	}
 private:
-	int _preorder_traverse(TreeNode<T> &target, std::function<void(T&)> execute, std::map<int, bool> &visit_map) const {
+	int _preorder_traverse(BinaryTreeNode &target, std::function<void(T&)> execute, std::map<int, bool> &visit_map) const {
 		if (target.left != nullptr) this->_preorder_traverse(*target.left, execute, visit_map);
 		bool visited = false;
 		if (visit_map.find(target.id) != visit_map.end()) {
