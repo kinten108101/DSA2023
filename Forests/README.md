@@ -1,4 +1,4 @@
-# Chapter 10: Trees (Forests)
+# Chapter 6: Trees (Forests)
 
 Root: Indegree 0
 Leaf: Outdegree 0
@@ -11,8 +11,30 @@ Height = max(Level) + 1
 
 Views:
 - organization chart
-- parenthetical listing
-- indented list
+- parenthetical listing	A((BC)D)
+- indented list (filesystem tree)
+
+## Binary tree
+
+Balance factor = Height(left) - Height(right)
+
+Balanced tree: |balance factor| <= 1
 
 Complete tree: Last lvel is full. N = Nmax = 2^H - 1
 Nearly complete tree: Nodes in the last level are on the left
+
+Completeness -> Array representation
+
+A [B C] [D E F G]
+
+Depth-first traversal
+- Pre-order
+	- Left Right
+	- Right Left
+- In-order
+	- Left Right
+	- Right Left
+- Post-order
+	- Left Right
+	- Right Left
+Breadth-first traversal
