@@ -38,3 +38,13 @@ Depth-first traversal
 	- Left Right
 	- Right Left
 Breadth-first traversal
+
+### Application
+
+Expression Tree. Each leaf is an operand and the root and internal nodes are operators. Subtrees are subexpressions.
+
+## BST
+
+find
+insert
+remove
