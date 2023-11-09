@@ -48,3 +48,26 @@ Expression Tree. Each leaf is an operand and the root and internal nodes are ope
 find
 insert
 remove
+
+## AVL Tree
+
+It's a binary search tree
+
+EH: equal height
+LH: left higher
+RH: right higher
+
+## M-Way Tree
+
+Degree.
+
+## B-Tree
+
+Balanced M-Way tree.
+The root is either a leaft or has at least 2 subtrees.
+ALl other nodes have at least (m/2)-1 entries
+All leaf nodes are at the same level
+
+### Application
+
+Filesystem indexing using B*-Tree

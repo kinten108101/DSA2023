@@ -227,6 +227,170 @@ public:
 	}
 };
 
+template <class T>
+class AVLTree : public BSTree<T> {
+protected:
+	enum BalanceFactor {
+		EH,
+		LH,
+		RH
+	};
+
+	struct Node {
+		BalanceFactor b;
+
+		T data;
+		Node *left;
+		Node *right;
+
+		Node(const T& data, Node *left = nullptr, Node *right = nullptr, BalanceFactor b = EH): data(data), left(left), right(right), b(b) {}
+		Node(const T&& data, Node *left = nullptr, Node *right = nullptr, BalanceFactor b = EH): data(data), left(left), right(right), b(b) {}
+	};
+
+	Node *root;
+
+	void rotate_right(Node * &p) {
+		Node *_p = p->left;
+		p->left = _p->right;
+		_p->left = p;
+		p = _p;
+	}
+
+	void rotate_left(Node * &p) {
+		Node *_p = p->right;
+		p->right = _p->left;
+		_p->right = p;
+		p = _p;
+	}
+
+	bool balanceLeft(Node *p) {
+		if (p->b == EH) {
+			p->b = LH;
+			return true;
+		} else if (p->b == RH) {
+			p->b = EH;
+			return false;
+		}
+		if (p->left->b == LH) {
+			this->rotate_right(p);
+			p->b = p->right->b = EH;
+			return false;
+		} else if (p->left->b == EH) {
+			this->rotate_right(p);
+			p->b = RH;
+			p->right->b = LH;
+			return true;
+		}
+		this->rotate_left(p->left);
+		this->rotate_right(p);
+		if (p->b == LH) {
+			p->left->b = p->b = EH;
+			p->right->b = RH;
+			return false;
+		} else if (p->b == EH) {
+			p->left->b = p->right->b = EH;
+		} else {
+			p->right->b = p->b = EH;
+			p->left->b = LH;
+		}
+		return false;
+	}
+
+	bool balanceRight(Node *p) {
+		if (p->b == EH) {
+			p->b = RH;
+			return true;
+		} else if (p->b == LH) {
+			p->b = EH;
+			return false;
+		}
+		if (p->right->b == RH) {
+			this->rotate_left(p);
+			p->b = p->left->b = EH;
+			return false;
+		} else if (p->right->b == EH) {
+			this->rotate_left(p);
+			p->b = LH;
+			p->left->b = RH;
+			return true;
+		}
+		this->rotate_right(p->right);
+		this->rotate_left(p);
+		if (p->b == RH) {
+			p->right->b = p->b = EH;
+			p->left->b = RH;
+			return false;
+		} else if (p->b == EH) {
+			p->right->b = p->left->b = EH;
+		} else {
+			p->left->b = p->b = EH;
+			p->right->b = RH;
+		}
+		return false;
+	}
+
+	bool insert(Node * &p, const T& key) {
+		if (p) {
+			if (p->data > key) {
+				if (this->insert(p->left, key)) {
+					return balanceLeft(p);
+				}
+			} else {
+				if (this->insert(p->right, key)) {
+					return balanceRight(p);
+				}
+			}
+			return false;
+		} else if (p->data == key) {
+			// make sure no duplication so this is a BST
+			return false;
+		}{
+			p = new Node(key);
+		}
+		return false;
+	}
+
+	bool remove(Node * &p, const T& key) {
+		if (!p) return false;
+		if (p->data == key) {
+			if (p->left && p->right) {
+				Node *tmp = p->right;
+				while (tmp->left) {
+					tmp = tmp->left;
+				}
+				p->data = tmp->data;
+				if (this->remove(p->right, p->data)) {
+					return !this->balanceLeft(p);
+				}
+				return false;
+			} else if (p->left) {
+				Node *tmp = p;
+				p = p->left;
+				delete tmp;
+			} else if (p->right) {
+				Node *tmp = p;
+				p = p->right;
+				delete tmp;
+			} else {
+				delete p;
+				p = nullptr;
+			}
+			return true;
+		} else if (p->data > key) {
+			if (this->remove(p->left, key)) return !balanceRight(p);
+
+		} else {
+			if (this->remove(p->right, key)) return !balanceLeft(p);
+		}
+		return false;
+	}
+public:
+
+	void insert(const T& item) {
+		bool result = this->insert(this->root, item);
+	}
+};
+
 int main() {
 	BinTree<char> tree(
 		BinTree<char>::build_node('a',
@@ -267,7 +431,12 @@ int main() {
 		},
 		BSTree<int>::TraversalOrder::DF_LNR);
 	std::cout << std::endl;
-	return 0;
+
+	AVLTree<int> avl;
+	for (int i = 0, val; i < 10; i++) {
+		avl.insert(val = rand() % 100);
+	}
+	return 0;h
 }
 
 // reinterpret_cast
