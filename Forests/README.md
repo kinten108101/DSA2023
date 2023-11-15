@@ -64,6 +64,7 @@ Degree.
 ## B-Tree
 
 Balanced M-Way tree.
+No duplicate
 The root is either a leaft or has at least 2 subtrees.
 ALl other nodes have at least (m/2)-1 entries
 All leaf nodes are at the same level
@@ -71,3 +72,12 @@ All leaf nodes are at the same level
 ### Application
 
 Filesystem indexing using B*-Tree
+
+## B\*Tree
+
+ALl other nodes have at least 2\*(max)/3 entries. Maintain over time. Merge more than two nodes.
+
+## B\+Tree
+
+All data in leafs. All keys in internal nodes.
+Each leaf node has one additional pointer to move to the next leaf node
