@@ -230,6 +230,18 @@ public:
 template <class T>
 class AVLTree : public BSTree<T> {
 protected:
+	
+public:
+	enum TraversalOrder {
+		DF_NLR,
+		DF_NRL,
+		DF_LNR,
+		DF_RNL,
+		DF_LRN,
+		DF_RLN,
+		BF,
+	};
+
 	enum BalanceFactor {
 		EH,
 		LH,
@@ -245,9 +257,78 @@ protected:
 
 		Node(const T& data, Node *left = nullptr, Node *right = nullptr, BalanceFactor b = EH): data(data), left(left), right(right), b(b) {}
 		Node(const T&& data, Node *left = nullptr, Node *right = nullptr, BalanceFactor b = EH): data(data), left(left), right(right), b(b) {}
+
+		bool isLeaf() {
+			return (!this->left && !this->right);
+		}
 	};
 
 	Node *root;
+
+	AVLTree<T>(): root(nullptr) {}
+
+	void traverse_nlr_recursive(Node *node, std::function<void (T&, Node &node)> execute) {
+		if (node) {
+			execute(node->data, *node);
+			traverse_nlr_recursive(node->left, execute);
+			traverse_nlr_recursive(node->right, execute);
+		}
+	}
+
+	void traverse_nrl_recursive(Node *node, std::function<void (T&, Node &node)> execute) {
+		if (node) {
+			execute(node->data, *node);
+			traverse_nrl_recursive(node->right, execute);
+			traverse_nrl_recursive(node->left, execute);
+		}
+	}
+
+	void traverse_lnr_recursive(Node *node, std::function<void (T&, Node &node)> execute) {
+		if (node) {
+			traverse_lnr_recursive(node->left, execute);
+			execute(node->data, *node);
+			traverse_lnr_recursive(node->right, execute);
+		}
+	}
+
+	void traverse_rnl_recursive(Node *node, std::function<void (T&, Node &node)> execute) {
+		if (node) {
+			traverse_rnl_recursive(node->right, execute);
+			execute(node->data, *node);
+			traverse_rnl_recursive(node->left, execute);
+		}
+	}
+
+	void traverse_lrn_recursive(Node *node, std::function<void (T&, Node &node)> execute) {
+		if (node) {
+			traverse_lrn_recursive(node->left, execute);
+			traverse_lrn_recursive(node->right, execute);
+			execute(node->data, *node);
+		}
+	}
+
+	void traverse_rln_recursive(Node *node, std::function<void (T&, Node &node)> execute) {
+		if (node) {
+			traverse_rln_recursive(node->right, execute);
+			traverse_rln_recursive(node->left, execute);
+			execute(node->data, *node);
+		}
+	}
+
+	void traverse_bf(Node *node, std::function<void (T&, Node &node)> execute) {
+		std::queue<Node *> queue;
+		if (node) queue.push(node);
+		while (!queue.empty()) {
+			Node *head = queue.front();
+			if (head->left)
+				queue.push(head->left);
+			if (head->right)
+				queue.push(head->right);
+			execute(head->data, *head);
+			queue.pop();
+			
+		}
+	}
 
 	void rotate_right(Node * &p) {
 		Node *_p = p->left;
@@ -271,6 +352,7 @@ protected:
 			p->b = EH;
 			return false;
 		}
+
 		if (p->left->b == LH) {
 			this->rotate_right(p);
 			p->b = p->right->b = EH;
@@ -281,6 +363,7 @@ protected:
 			p->right->b = LH;
 			return true;
 		}
+
 		this->rotate_left(p->left);
 		this->rotate_right(p);
 		if (p->b == LH) {
@@ -293,6 +376,7 @@ protected:
 			p->right->b = p->b = EH;
 			p->left->b = LH;
 		}
+
 		return false;
 	}
 
@@ -304,6 +388,7 @@ protected:
 			p->b = EH;
 			return false;
 		}
+
 		if (p->right->b == RH) {
 			this->rotate_left(p);
 			p->b = p->left->b = EH;
@@ -314,6 +399,7 @@ protected:
 			p->left->b = RH;
 			return true;
 		}
+
 		this->rotate_right(p->right);
 		this->rotate_left(p);
 		if (p->b == RH) {
@@ -326,25 +412,26 @@ protected:
 			p->left->b = p->b = EH;
 			p->right->b = RH;
 		}
+
 		return false;
 	}
 
-	bool insert(Node * &p, const T& key) {
+	bool _insert(Node * &p, const T& key) {
 		if (p) {
 			if (p->data > key) {
-				if (this->insert(p->left, key)) {
+				if (this->_insert(p->left, key)) {
 					return balanceLeft(p);
 				}
+			} else if (p->data == key) {
+				// make sure no duplication so this is a BST
+				return false;
 			} else {
-				if (this->insert(p->right, key)) {
+				if (this->_insert(p->right, key)) {
 					return balanceRight(p);
 				}
 			}
 			return false;
-		} else if (p->data == key) {
-			// make sure no duplication so this is a BST
-			return false;
-		}{
+		} else {
 			p = new Node(key);
 		}
 		return false;
@@ -384,14 +471,64 @@ protected:
 		}
 		return false;
 	}
-public:
 
 	void insert(const T& item) {
-		bool result = this->insert(this->root, item);
+		bool result = this->_insert(this->root, item);
+	}
+
+	void traverse(std::function<void (T&, Node &node)> execute, TraversalOrder order = TraversalOrder::DF_NLR) {
+		switch (order) {
+		case DF_NLR:
+			this->traverse_nlr_recursive(this->root, execute);
+			break;
+		case DF_NRL:
+			this->traverse_nrl_recursive(this->root, execute);
+			break;
+		case DF_LNR:
+			this->traverse_lnr_recursive(this->root, execute);
+			break;
+		case DF_RNL:
+			this->traverse_rnl_recursive(this->root, execute);
+			break;
+		case DF_LRN:
+			this->traverse_lrn_recursive(this->root, execute);
+			break;
+		case DF_RLN:
+			this->traverse_rln_recursive(this->root, execute);
+			break;
+		case BF:
+			this->traverse_bf(this->root, execute);
+			break;
+		default:
+			throw utils::NotImplementedException("travsere");
+		}
+	}
+
+	int getHeightRecursive(Node *node) {
+	    if (!node) return 0;
+	    int left_len = 0;
+	    left_len = this->getHeightRecursive(node->left);
+	    int right_len = 0;
+	    right_len = this->getHeightRecursive(node->right);
+	    if (left_len > right_len) return left_len + 1;
+	    return right_len + 1;
+	}
+
+	int getHeight() {
+	    // TODO: return height of the binary tree.
+	    return this->getHeightRecursive(this->root);
 	}
 };
 
+class BTree {
+public:
+	class Node {
+	public:
+	};
+};
+
 int main() {
+	std::cout << "Binary Tree (Generic immutable 2-way tree)" << std::endl;
 	BinTree<char> tree(
 		BinTree<char>::build_node('a',
 			BinTree<char>::build_node('b',
@@ -418,6 +555,8 @@ int main() {
 		BinTree<char>::TraversalOrder::BF);
 	std::cout << std::endl;
 
+	std::cout << "Binary Search Tree (Mutable 2-way tree)" << std::endl;
+
 	BSTree<int> bst;
 	for (int i = 0, val; i < 10; i++) {
 		bst.insert(val = rand() % 100);
@@ -431,12 +570,30 @@ int main() {
 		},
 		BSTree<int>::TraversalOrder::DF_LNR);
 	std::cout << std::endl;
+	
+	std::cout << "AVL Tree (Mutable self-balacing 2-way tree)" << std::endl;
 
 	AVLTree<int> avl;
-	for (int i = 0, val; i < 10; i++) {
+	for (int i = 0, val; i < 53; i++) {
 		avl.insert(val = rand() % 100);
 	}
-	return 0;h
+	avl.traverse(
+		[](int num, AVLTree<int>::Node &node) {
+			std::cout << std::setw(5) << num;
+		},
+		AVLTree<int>::TraversalOrder::DF_LNR);
+	std::cout << std::endl;
+	int height = avl.getHeight();
+	avl.traverse(
+		[&](int num, AVLTree<int>::Node &node) {
+			if (node.isLeaf()) {
+				std::cout << std::setw(5) << height - avl.getHeightRecursive(&node);
+			}
+		},
+		AVLTree<int>::TraversalOrder::DF_LNR);
+	std::cout << std::endl;
+	avl.remove(5);
+	return 0;
 }
 
 // reinterpret_cast
