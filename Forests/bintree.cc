@@ -4,6 +4,9 @@
 #include "../Utils/utils.h"
 #include <iostream>
 #include <iomanip>
+#include <stdexcept>
+
+#define MAX_LOOP_ITERATIONS 1024
 
 template <class T>
 class BinTree {
@@ -147,6 +150,7 @@ template <class T>
 class BSTree : public BinTree<T> {
 protected:
 	typedef typename BinTree<T>::Node Node;
+private:
 	void remove(Node * &p, const T& key) {
 		if (!p) return;
 		if (p->data == key) {
@@ -193,15 +197,15 @@ protected:
 		}
 	}
 public:
-	void remove(const T& item) {
+	virtual void remove(const T& item) {
 		this->remove(this->root, item);
 	}
 
-	T& find(const T& item) {
+	virtual T& find(const T& item) {
 		return this->find(this->root, item);
 	}
 
-	T& find_iterative(const T& key) {
+	virtual T& find_iterative(const T& key) {
 
 		Node *p = this->root;
 		while (p) {
@@ -213,11 +217,11 @@ public:
 
 	}
 
-	void insert(const T& item) {
+	virtual void insert(const T& item) {
 		this->insert(this->root, item);
 	}
 
-	void insert_iterative(const T& key) {
+	virtual void insert_iterative(const T& key) {
 		Node **pp = &this->root;
 		while (*pp) {
 			if ((*pp)->data > key) pp = &((*pp)->left);
@@ -333,18 +337,18 @@ public:
 	void rotate_right(Node * &p) {
 		Node *_p = p->left;
 		p->left = _p->right;
-		_p->left = p;
+		_p->right = p;
 		p = _p;
 	}
 
 	void rotate_left(Node * &p) {
 		Node *_p = p->right;
 		p->right = _p->left;
-		_p->right = p;
+		_p->left = p;
 		p = _p;
 	}
 
-	bool balanceLeft(Node *p) {
+	bool balanceLeft(Node * &p) {
 		if (p->b == EH) {
 			p->b = LH;
 			return true;
@@ -380,7 +384,7 @@ public:
 		return false;
 	}
 
-	bool balanceRight(Node *p) {
+	bool balanceRight(Node * &p) {
 		if (p->b == EH) {
 			p->b = RH;
 			return true;
@@ -431,16 +435,17 @@ public:
 				}
 			}
 			return false;
-		} else {
-			p = new Node(key);
 		}
-		return false;
+		p = new Node(key);
+		return true;
 	}
 
 	bool remove(Node * &p, const T& key) {
 		if (!p) return false;
 		if (p->data == key) {
 			if (p->left && p->right) {
+				// take min right or max left will vastly affect final result,
+				// so, know your requirements!
 				Node *tmp = p->right;
 				while (tmp->left) {
 					tmp = tmp->left;
@@ -470,6 +475,10 @@ public:
 			if (this->remove(p->right, key)) return !balanceLeft(p);
 		}
 		return false;
+	}
+
+	void remove(const T& key) {
+		this->remove(this->root, key);
 	}
 
 	void insert(const T& item) {
@@ -518,6 +527,76 @@ public:
 	    // TODO: return height of the binary tree.
 	    return this->getHeightRecursive(this->root);
 	}
+
+	int getDepthFull(Node *current, Node *target) {
+		int i = 0;
+		while (current && target && current != target) {
+			if (current->data <= target->data) current = current->right;
+			else current = current->left;
+			i++;
+		}
+		if (!current || !target) throw std::logic_error("Could not get depth");
+		return i;
+	}
+
+	int getDepth(Node *target) {
+		return this->getDepthFull(this->root, target);
+	}
+
+	Node* retrieve_node(const T& key) {
+		Node *buf = nullptr;
+		this->traverse(
+			[&](T& value, Node& node) {
+				if (value == key) buf = &node;
+			});
+		return buf;
+	}
+
+	Node* retrieve_parent(Node *child) {
+		Node *parent = nullptr;
+		if (child == this->root) throw std::logic_error("is root");
+		this->traverse(
+			[&](T& value, Node& node) {
+				if (node.left == child || node.right == child) parent = &node;
+			});
+		if (parent == nullptr) throw std::logic_error("could not find parent??");
+		return parent;
+	}
+
+	T& find_common_ancestor(const T& a, const T& b) {
+		Node *node_a = this->retrieve_node(a);
+		if (!node_a) throw std::logic_error("Could not retrieve node with key");
+		Node *node_b = this->retrieve_node(b);
+		if (!node_a) throw std::logic_error("Could not retrieve node with key");
+		int depth_a = this->getDepth(node_a);
+		int depth_b = this->getDepth(node_b);
+		int i = 0;
+		while (depth_a != depth_b && i < MAX_LOOP_ITERATIONS) {
+			if (depth_a > depth_b) {
+				node_a = this->retrieve_parent(node_a);
+				depth_a = this->getDepth(node_a);
+			}
+			else {
+				node_b = this->retrieve_parent(node_b);
+				depth_b = this->getDepth(node_b);
+			}
+			i++;
+		}
+		if (i >= MAX_LOOP_ITERATIONS)
+			throw std::logic_error("Max loop iterations (sync height)");
+		Node *parent_a = node_a;
+		Node *parent_b = node_b;
+		i = 0;
+		while (parent_a != parent_b && i < MAX_LOOP_ITERATIONS) {
+			parent_a = this->retrieve_parent(parent_a);
+			parent_b = this->retrieve_parent(parent_b);
+			i++;
+		}
+		if (i >= MAX_LOOP_ITERATIONS)
+			throw std::logic_error("Max loop iterations (get common)");
+		return parent_a->data;
+	}
+};
 };
 
 class BTree {
@@ -574,25 +653,30 @@ int main() {
 	std::cout << "AVL Tree (Mutable self-balacing 2-way tree)" << std::endl;
 
 	AVLTree<int> avl;
-	for (int i = 0, val; i < 53; i++) {
-		avl.insert(val = rand() % 100);
+	int arr[] = {10,52,98,32,68,92,40,13,42,63,99,100};
+	for (int i = 0; i < 12; i++){
+		avl.insert(arr[i]);
 	}
+	avl.remove(52);
 	avl.traverse(
 		[](int num, AVLTree<int>::Node &node) {
 			std::cout << std::setw(5) << num;
 		},
 		AVLTree<int>::TraversalOrder::DF_LNR);
 	std::cout << std::endl;
-	int height = avl.getHeight();
 	avl.traverse(
 		[&](int num, AVLTree<int>::Node &node) {
-			if (node.isLeaf()) {
-				std::cout << std::setw(5) << height - avl.getHeightRecursive(&node);
-			}
+			
+				std::cout << std::setw(5) << avl.getDepth(&node);
+			
 		},
 		AVLTree<int>::TraversalOrder::DF_LNR);
 	std::cout << std::endl;
-	avl.remove(5);
+
+	std::cout << "Find common ancestor" << std::endl;
+
+	std::cout << avl.find_common_ancestor(26, 72) << std::endl;
+	
 	return 0;
 }
 
