@@ -222,7 +222,7 @@ int connectedComponents(vector<vector<int>>& edges) {
 }
 
 void test_dfs() {
-	std::cout << "\"Test DFS\"" << std::endl;
+	std::cout << "> dfs" << std::endl;
 	int V = 8, visited = 0;
 
 	Graph g(V);
@@ -238,11 +238,10 @@ void test_dfs() {
 	arr->printArray();
 	std::cout << std::endl;
 	delete arr;
-	std::cout << std::endl;
 }
 
 void test_connected_graph() {
-	std::cout << "\"Test connected graph\"" << std::endl;
+	std::cout << "> connected-graph" << std::endl;
 	std::vector<std::vector<int>> graph {
 		{1},
 		{0, 2},
@@ -251,7 +250,6 @@ void test_connected_graph() {
 		{}
 	};
 	std::cout << connectedComponents(graph) << std::endl;
-	std::cout << std::endl;
 }
 
 int main() {
