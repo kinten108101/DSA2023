@@ -9,6 +9,57 @@ int default_compare_func(const T& a, const T& b) {
 }
 
 template <class T>
+class Heap {
+	T* elements;
+	int count;
+	int capacity;
+
+	Heap(): elements(nullptr), count(0), capacity(0) {}
+
+	void push(T item);
+	void ensureCapacity(int);
+	void reheapUp(int);
+};
+
+template<class T>
+void Heap<T>::push(T item){
+    this->ensureCapacity(this->count+1);
+    this->elements[this->count] = item;
+    this->count++;
+    for (int i = 0; i < this->count; i++) {
+        this->reheapUp(i);
+    }
+}
+
+template<class T>
+void Heap<T>::ensureCapacity(int minCapacity){
+    if (this->capacity <= minCapacity) {
+        int newCap = this->capacity * 2;
+        T* old = this->elements;
+        this->elements = new T[newCap];
+        for (int i = 0; i < this->count; i++) {
+            this->elements[i] = old[i];
+        }
+        this->capacity = newCap;
+        delete [] old;
+    }
+}
+
+template<class T>
+void Heap<T>::reheapUp(int idx){
+    while (idx) {
+		int parent_idx = (idx - 1) / 2;
+		if (this->elements[idx] > this->elements[parent_idx]) {
+			T temp(std::move(this->elements[idx]));
+			this->elements[idx] = std::move(this->elements[parent_idx]);
+			this->elements[parent_idx] = std::move(temp);
+		}
+		else return;
+		idx = parent_idx;
+	}
+}
+
+template <class T>
 void heap_up(T *data, int idx) {
 	while (idx) {
 		int parent_idx = (idx - 1) / 2;
