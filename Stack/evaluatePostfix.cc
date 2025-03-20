@@ -15,7 +15,7 @@ int evaluatePostfix(std::string expr){
         try {
             number = std::stoi(buffer);
             vals.push(number);
-        } catch (std::exception) {
+        } catch (const std::exception& e) {
             char op = buffer[0];
             if (op == '+') {
                 int b = vals.top();
