@@ -1,9 +1,11 @@
 # Chapter 6: Trees (Forests)
 
-Root: Indegree 0
-Leaf: Outdegree 0
-Internal node: Indegree == 1 && Outdegree != 0
-Siblings: Nodes of same level
+A tree is a data structure characterized by nodes and the connections between them, where:
+- Root is a node with indegree 0
+- Leaf is a node with outdegree 0
+- Internal node is a node with indegree 1 and outdegree > 0
+- Siblings are nodes of same level
+- Each node can have many children, but only one parent.
 
 Level is counted from root. Level 0 is root.
 Height = max(Level) + 1
