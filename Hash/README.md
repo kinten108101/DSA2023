@@ -18,10 +18,10 @@ h(k) = (A*k + B) % M
 ```
 
 # Collision Resolution
-## Closed Addressing
+## Closed Addressing (Open Hashing)
 - Linked list, if there are few collisions 
 - Bucket hashing, if there are many collisions. Then do sequential probing
-## Open Addressing
+## Open Addressing (Closed Hashing)
 hash-probe function. hp(k, p)
 some implementations:
 - Sequential (linear) probing
